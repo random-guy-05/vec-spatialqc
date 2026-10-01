@@ -33,7 +33,7 @@ def analyze_coordinates(coords) -> SpatialReport:
     if not np.isfinite(cloud).all():
         raise ValueError("spatial_3D contains NaN or infinite values")
 
-    centered = cloud - np.median(cloud, axis=0, keepdims=True)
+    centered = cloud - np.mean(cloud, axis=0, keepdims=True)
     singular = np.linalg.svd(centered, compute_uv=False)
     if singular.size and singular[0] > 0:
         # Relative tolerance keeps the rank decision unchanged if a coordinate
