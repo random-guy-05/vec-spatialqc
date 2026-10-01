@@ -9,11 +9,11 @@ A T2/T3 H5AD can satisfy the basic coordinate contract while still containing a 
 - finite `obsm["spatial_3D"][:, :3]`;
 - centered geometric rank;
 - exact duplicate-coordinate fraction;
-- axis-aligned span and anisotropy;
+- axis spans plus rotation-invariant singular-value anisotropy;
 - nearest-neighbor distance distribution;
 - robust radial outlier fraction.
 
-Global translation and rotation are not treated as errors.
+Global translation and rotation are not treated as errors. The anisotropy warning is based on singular values rather than the coordinate axes, and the rank check is relative to the cloud's own scale.
 
 ## Usage
 
@@ -35,4 +35,4 @@ pytest
 ruff check src tests
 ```
 
-The suite includes end-to-end synthetic H5AD tests for a 3D cloud, a line-collapsed cloud and a missing-coordinate file.
+The suite includes end-to-end synthetic H5AD tests for a 3D cloud, a line-collapsed cloud and a missing-coordinate file, plus regression tests for coordinate-scale and rotation invariance.
