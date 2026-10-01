@@ -25,9 +25,9 @@ def main(argv: list[str] | None = None) -> int:
                 raise KeyError("missing obsm['spatial_3D']")
             report = analyze_coordinates(data.obsm["spatial_3D"])
         finally:
-            with suppress(Exception):
+            with suppress(AttributeError, OSError, ValueError):
                 data.file.close()
-    except Exception as exc:
+    except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
         print(f"ERROR: {exc}")
         return 2
 
