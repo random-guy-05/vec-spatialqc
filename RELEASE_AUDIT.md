@@ -14,7 +14,7 @@ The public GitHub Actions workflow runs on Python **3.10, 3.11, and 3.12** and r
 
 ## Integration coverage
 
-Synthetic AnnData CLI integration covers healthy 3D geometry, line collapse, and missing coordinates.
+Synthetic AnnData CLI integration covers healthy 3D geometry, line collapse, and missing coordinates. Core regression tests also verify that geometric rank is stable across coordinate-unit rescaling and that the anisotropy diagnostic is invariant to rotation.
 
 All repository fixtures are synthetic or generated during tests. No restricted or withheld Virtual Embryo Challenge data is bundled.
 
