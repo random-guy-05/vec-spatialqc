@@ -14,6 +14,7 @@ class SpatialReport:
     duplicate_fraction: float
     axis_spans: list[float]
     span_ratio: float
+    singular_value_ratio: float
     median_nearest_neighbor_distance: float
     radial_outlier_fraction: float
     reasons: list[str]
@@ -34,11 +35,17 @@ def analyze_coordinates(coords) -> SpatialReport:
 
     centered = cloud - np.median(cloud, axis=0, keepdims=True)
     singular = np.linalg.svd(centered, compute_uv=False)
-    geometric_rank = (
-        int(np.sum(singular > max(singular[0], 1.0) * 1e-8))
-        if singular.size
-        else 0
-    )
+    if singular.size and singular[0] > 0:
+        # Relative tolerance keeps the rank decision unchanged if a coordinate
+        # system is expressed in different units.
+        geometric_rank = int(np.sum(singular > singular[0] * 1e-8))
+    else:
+        geometric_rank = 0
+
+    if geometric_rank == 3 and singular[-1] > 0:
+        singular_value_ratio = float(singular[0] / singular[-1])
+    else:
+        singular_value_ratio = float("inf")
 
     unique = np.unique(cloud, axis=0)
     duplicate_fraction = 1.0 - len(unique) / len(cloud)
@@ -81,8 +88,8 @@ def analyze_coordinates(coords) -> SpatialReport:
     if duplicate_fraction >= 0.10:
         reasons.append("at least 10% of coordinates are exact duplicates")
         warning = True
-    if span_ratio > 1000:
-        reasons.append("coordinate spans are extremely anisotropic")
+    if geometric_rank == 3 and singular_value_ratio > 1000:
+        reasons.append("coordinate cloud is extremely anisotropic")
         warning = True
     if outlier_fraction > 0.02:
         reasons.append("more than 2% of cells are extreme radial outliers")
@@ -102,6 +109,7 @@ def analyze_coordinates(coords) -> SpatialReport:
         duplicate_fraction=duplicate_fraction,
         axis_spans=[float(value) for value in spans],
         span_ratio=span_ratio,
+        singular_value_ratio=singular_value_ratio,
         median_nearest_neighbor_distance=median_nn,
         radial_outlier_fraction=outlier_fraction,
         reasons=reasons,
