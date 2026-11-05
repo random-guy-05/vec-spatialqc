@@ -66,8 +66,18 @@ def analyze_coordinates(coords) -> SpatialReport:
     radii = np.linalg.norm(centered, axis=1)
     median_radius = float(np.median(radii))
     mad = float(np.median(np.abs(radii - median_radius)))
-    if mad > 0:
-        robust_z = np.abs(radii - median_radius) / (1.4826 * mad)
+    # Equal-radius shells can have zero (or roundoff-sized) MAD even when a
+    # minority of cells is far away. A 0.1% relative-radius dispersion floor
+    # keeps the existing eight-scale threshold conservative: shell jitter up
+    # to 0.8% is not an extreme radial outlier. The numerical floor also scales
+    # with the largest radius to cover centering/norm roundoff.
+    radial_scale = max(
+        1.4826 * mad,
+        0.001 * median_radius,
+        64 * np.finfo(np.float64).eps * float(np.max(radii)),
+    )
+    if radial_scale > 0:
+        robust_z = np.abs(radii - median_radius) / radial_scale
         outlier_fraction = float(np.mean(robust_z > 8))
     else:
         outlier_fraction = 0.0
